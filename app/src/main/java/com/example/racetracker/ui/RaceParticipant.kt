@@ -27,12 +27,13 @@ class RaceParticipant(
     val name: String,
     val maxProgress: Int = 100,
     val progressDelayMillis: Long = 500L,
-    private val progressIncrement: Int = 1,
-    private val initialProgress: Int = 0
+    val progressIncrement: Int = 1,
+    val initialProgress: Int = 0
 ) {
     init {
-        require(maxProgress > 0) { "maxProgress=$maxProgress; must be > 0" }
-        require(progressIncrement > 0) { "progressIncrement=$progressIncrement; must be > 0" }
+//        require(maxProgress > 0) { "maxProgress=$maxProgress; must be > 0" }
+//        require(progressIncrement > 0) { "progressIncrement=$progressIncrement; must be > 0" }
+        require(progressIncrement != 0) { "progressIncrement=$progressIncrement; must not be 0" }
     }
 
     /**
@@ -46,9 +47,44 @@ class RaceParticipant(
      * [maxProgress]. There is a delay of [progressDelayMillis] between each update.
      */
     suspend fun run() {
-        while (currentProgress < maxProgress) {
-            delay(progressDelayMillis)
-            currentProgress += progressIncrement
+//        while (currentProgress < maxProgress) {
+//            delay(progressDelayMillis)
+//            currentProgress += progressIncrement
+//        }
+        // Check if it is increasing or decreasing
+        if (initialProgress < maxProgress && progressIncrement > 0) {
+            while (currentProgress < maxProgress) {
+                delay(progressDelayMillis)
+                currentProgress += progressIncrement
+            }
+        }
+        else if (initialProgress > maxProgress && progressIncrement < 0) {
+            while (currentProgress > maxProgress) {
+                delay(progressDelayMillis)
+                currentProgress += progressIncrement
+            }
+        }
+    }
+
+    suspend fun run(customProgressIncrement: Int) {
+        // Check if it is increasing or decreasing
+        if (initialProgress < maxProgress && customProgressIncrement > 0) {
+            while (currentProgress < maxProgress) {
+                delay(progressDelayMillis)
+                currentProgress += customProgressIncrement
+                if (currentProgress > maxProgress) {
+                    currentProgress = maxProgress
+                }
+            }
+        }
+        else if (initialProgress > maxProgress && customProgressIncrement < 0) {
+            while (currentProgress > maxProgress) {
+                delay(progressDelayMillis)
+                currentProgress += customProgressIncrement
+                if (currentProgress < maxProgress) {
+                    currentProgress = maxProgress
+                }
+            }
         }
     }
 
@@ -57,7 +93,7 @@ class RaceParticipant(
      * [currentProgress] to 0
      */
     fun reset() {
-        currentProgress = 0
+        currentProgress = initialProgress
     }
 }
 
@@ -66,4 +102,8 @@ class RaceParticipant(
  * calculate the progress factor to satisfy the indicator requirements.
  */
 val RaceParticipant.progressFactor: Float
-    get() = currentProgress / maxProgress.toFloat()
+    get() = if (progressIncrement > 0) {
+        currentProgress / maxProgress.toFloat()
+    } else {
+        (maxProgress - currentProgress) / (maxProgress - initialProgress).toFloat()
+    }

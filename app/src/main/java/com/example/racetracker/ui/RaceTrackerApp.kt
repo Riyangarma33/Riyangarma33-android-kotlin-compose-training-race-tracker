@@ -15,6 +15,7 @@
  */
 package com.example.racetracker.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,6 +55,7 @@ import com.example.racetracker.R
 import com.example.racetracker.ui.theme.RaceTrackerTheme
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 @Composable
 fun RaceTrackerApp() {
@@ -62,26 +64,59 @@ fun RaceTrackerApp() {
      * be used with custom Saver object. But to keep the example simple, and keep focus on
      * Coroutines that implementation detail is stripped out.
      */
+
+    var playerProgressIncrement by remember { mutableStateOf(List(2) { 1 }) }
+    var playerProgressDecrement by remember { mutableStateOf(List(2) { -1 }) }
+
     val playerOne = remember {
         RaceParticipant(name = "Player 1", progressIncrement = 1)
     }
     val playerTwo = remember {
         RaceParticipant(name = "Player 2", progressIncrement = 2)
     }
+    val playerThree = remember {
+        RaceParticipant(
+            name = "Player 3",
+            progressIncrement = -1,
+            maxProgress = 0,
+            initialProgress = 100
+        )
+    }
+    val playerFour = remember {
+        RaceParticipant(
+            name = "Player 4",
+            progressIncrement = -2,
+            maxProgress = 0,
+            initialProgress = 100
+        )
+    }
+
     var raceInProgress by remember { mutableStateOf(false) }
 
-    if (raceInProgress) {
-        LaunchedEffect(playerOne, playerTwo) {
+    LaunchedEffect(raceInProgress) {
+        if (raceInProgress) {
+            playerProgressIncrement = List(2) { Random.nextInt(1, 4) }
+            playerProgressDecrement = List(2) { Random.nextInt(1, 4) * (-1) }
+            Log.d("Progress Rate", "playerOne: ${playerProgressIncrement[0]}")
+            Log.d("Progress Rate", "playerTwo: ${playerProgressIncrement[1]}")
+            Log.d("Progress Rate", "playerThree: ${playerProgressDecrement[0]}")
+            Log.d("Progress Rate", "playerFour: ${playerProgressDecrement[1]}")
             coroutineScope {
-                launch { playerOne.run() }
-                launch { playerTwo.run() }
+                launch { playerOne.run(playerProgressIncrement[0]) }
+                launch { playerTwo.run(playerProgressIncrement[1]) }
+                launch { playerThree.run(playerProgressDecrement[0]) }
+                launch { playerFour.run(playerProgressDecrement[1]) }
             }
             raceInProgress = false
         }
+
     }
+
     RaceTrackerScreen(
         playerOne = playerOne,
         playerTwo = playerTwo,
+        playerThree = playerThree,
+        playerFour = playerFour,
         isRunning = raceInProgress,
         onRunStateChange = { raceInProgress = it },
         modifier = Modifier
@@ -97,6 +132,8 @@ fun RaceTrackerApp() {
 private fun RaceTrackerScreen(
     playerOne: RaceParticipant,
     playerTwo: RaceParticipant,
+    playerThree: RaceParticipant,
+    playerFour: RaceParticipant,
     isRunning: Boolean,
     onRunStateChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
@@ -144,12 +181,36 @@ private fun RaceTrackerScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.size(dimensionResource(R.dimen.padding_large)))
+            StatusIndicator(
+                participantName = playerThree.name,
+                currentProgress = playerThree.currentProgress,
+                maxProgress = stringResource(
+                    R.string.progress_percentage,
+                    playerThree.maxProgress
+                ),
+                progressFactor = playerThree.progressFactor,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(modifier = Modifier.size(dimensionResource(R.dimen.padding_large)))
+            StatusIndicator(
+                participantName = playerFour.name,
+                currentProgress = playerFour.currentProgress,
+                maxProgress = stringResource(
+                    R.string.progress_percentage,
+                    playerFour.maxProgress
+                ),
+                progressFactor = playerFour.progressFactor,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.size(dimensionResource(R.dimen.padding_large)))
             RaceControls(
                 isRunning = isRunning,
                 onRunStateChange = onRunStateChange,
                 onReset = {
                     playerOne.reset()
                     playerTwo.reset()
+                    playerThree.reset()
+                    playerFour.reset()
                     onRunStateChange(false)
                 },
                 modifier = Modifier.fillMaxWidth(),

@@ -27,7 +27,7 @@ import com.example.racetracker.ui.theme.RaceTrackerTheme
 
 @Composable
 fun Congratulation(
-    winner: Int,
+    winner: String,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -83,7 +83,7 @@ fun Congratulation(
 fun CongratulationPreview() {
     RaceTrackerTheme {
         Congratulation(
-            winner = 1,
+            winner = "Player 4",
             modifier = Modifier
                 .statusBarsPadding()
                 .fillMaxSize()

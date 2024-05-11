@@ -22,12 +22,15 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.racetracker.R
 import com.example.racetracker.ui.theme.RaceTrackerTheme
 
 @Composable
 fun Congratulation(
     winner: String,
+    navigation: NavHostController,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -68,7 +71,7 @@ fun Congratulation(
                     modifier = Modifier.size(dimensionResource(R.dimen.padding_medium))
                 )
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = { navigation.navigate("raceTracker") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(R.string.back_to_main))
@@ -84,6 +87,7 @@ fun CongratulationPreview() {
     RaceTrackerTheme {
         Congratulation(
             winner = "Player 4",
+            navigation = rememberNavController(),
             modifier = Modifier
                 .statusBarsPadding()
                 .fillMaxSize()

@@ -16,7 +16,7 @@
 package com.example.racetracker.ui
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 
@@ -39,7 +39,7 @@ class RaceParticipant(
     /**
      * Indicates the race participant's current progress
      */
-    var currentProgress by mutableStateOf(initialProgress)
+    var currentProgress by mutableIntStateOf(initialProgress)
         private set
 
     /**
@@ -102,6 +102,14 @@ class RaceParticipant(
     fun hasFinished(): Boolean {
         return (progressIncrement > 0 && currentProgress >= maxProgress) ||
                 (progressIncrement < 0 && currentProgress <= maxProgress)
+    }
+
+    /**
+     * Set the current progress to [progress]
+     * Usable for Stats in Congratulation Page
+     */
+    fun setProgress(progress: Int) {
+        currentProgress = progress
     }
 }
 

@@ -16,12 +16,23 @@
 package com.example.racetracker
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.racetracker.ui.Congratulation
 import com.example.racetracker.ui.RaceTrackerApp
 import com.example.racetracker.ui.theme.RaceTrackerTheme
 
@@ -31,11 +42,34 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             RaceTrackerTheme {
+                // Navigation Controller
+                val navController = rememberNavController()
+
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    RaceTrackerApp()
+                    // NavHost between composable
+                    NavHost(navController, startDestination = "raceTracker") {
+                        composable("raceTracker") { RaceTrackerApp(navigation = navController) }
+                        composable("congratulation/{winner}") { backStackEntry ->
+                            Log.d("MainActivity", "onCreate: ${backStackEntry.arguments?.getString("winner")}")
+                            val winner = backStackEntry.arguments?.getString("winner")
+                            if (winner != null) {
+                                Congratulation(
+                                    winner,
+                                    navigation = navController,
+                                    modifier = Modifier
+                                        .statusBarsPadding()
+                                        .fillMaxSize()
+                                        .verticalScroll(rememberScrollState())
+                                        .safeDrawingPadding()
+                                        .padding(horizontal = dimensionResource(R.dimen.padding_medium)),
+                                )
+                            }
+                        }
+                    }
+
                 }
             }
         }

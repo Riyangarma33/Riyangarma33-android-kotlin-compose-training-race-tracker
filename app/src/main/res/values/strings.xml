@@ -25,4 +25,5 @@
     <string name="player_two_name">Player 2</string>
     <string name="winner">The Winner is %1$s!</string>
     <string name="back_to_main">Back to Main</string>
+    <string name="to_stats">Stats</string>
 </resources>

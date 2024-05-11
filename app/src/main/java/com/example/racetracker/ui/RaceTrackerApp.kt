@@ -16,7 +16,7 @@
 package com.example.racetracker.ui
 
 import android.util.Log
-import android.widget.Toast
+//import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,12 +47,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
+//import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.racetracker.R
 import com.example.racetracker.ui.theme.RaceTrackerTheme
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +63,7 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @Composable
-fun RaceTrackerApp() {
+fun RaceTrackerApp(navigation: NavHostController) {
     /**
      * Note: To survive the configuration changes such as screen rotation, [rememberSaveable] should
      * be used with custom Saver object. But to keep the example simple, and keep focus on
@@ -96,7 +98,8 @@ fun RaceTrackerApp() {
 
     var raceInProgress by remember { mutableStateOf(false) }
     var raceEnded by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    // Enable LocalContext if necessary (As we are using Toast)
+//    val context = LocalContext.current
 
     LaunchedEffect(raceInProgress) {
         if (raceInProgress) {
@@ -129,9 +132,10 @@ fun RaceTrackerApp() {
                                 raceInProgress = false
                                 raceEnded = true
 
-                                // Showing the toast on UI thread
+                                // Showing the toast on UI thread or Navigate to Congratulation screen
                                 launch(Dispatchers.Main) {
-                                    Toast.makeText(context, currentWinner, Toast.LENGTH_LONG).show()
+//                                    Toast.makeText(context, currentWinner, Toast.LENGTH_LONG).show()
+                                    navigation.navigate("congratulation/$currentWinner")
                                 }
 
                             }
@@ -333,6 +337,6 @@ private fun RaceControls(
 @Composable
 fun RaceTrackerAppPreview() {
     RaceTrackerTheme {
-        RaceTrackerApp()
+        RaceTrackerApp(rememberNavController())
     }
 }

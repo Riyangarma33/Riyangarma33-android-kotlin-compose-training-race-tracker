@@ -95,6 +95,14 @@ class RaceParticipant(
     fun reset() {
         currentProgress = initialProgress
     }
+
+    /**
+     * Check if the race participant has reached the [maxProgress]
+     */
+    fun hasFinished(): Boolean {
+        return (progressIncrement > 0 && currentProgress >= maxProgress) ||
+                (progressIncrement < 0 && currentProgress <= maxProgress)
+    }
 }
 
 /**
@@ -107,3 +115,5 @@ val RaceParticipant.progressFactor: Float
     } else {
         (maxProgress - currentProgress) / (maxProgress - initialProgress).toFloat()
     }
+
+

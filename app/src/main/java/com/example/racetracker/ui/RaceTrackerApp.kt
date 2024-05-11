@@ -16,6 +16,7 @@
 package com.example.racetracker.ui
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -53,6 +55,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.racetracker.R
 import com.example.racetracker.ui.theme.RaceTrackerTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -92,6 +95,8 @@ fun RaceTrackerApp() {
     }
 
     var raceInProgress by remember { mutableStateOf(false) }
+    var raceEnded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     LaunchedEffect(raceInProgress) {
         if (raceInProgress) {
@@ -102,12 +107,39 @@ fun RaceTrackerApp() {
             Log.d("Progress Rate", "playerThree: ${playerProgressDecrement[0]}")
             Log.d("Progress Rate", "playerFour: ${playerProgressDecrement[1]}")
             coroutineScope {
-                launch { playerOne.run(playerProgressIncrement[0]) }
-                launch { playerTwo.run(playerProgressIncrement[1]) }
-                launch { playerThree.run(playerProgressDecrement[0]) }
-                launch { playerFour.run(playerProgressDecrement[1]) }
+                val jobOne = launch { playerOne.run(playerProgressIncrement[0]) }
+                val jobTwo = launch { playerTwo.run(playerProgressIncrement[1]) }
+                val jobThree = launch { playerThree.run(playerProgressDecrement[0]) }
+                val jobFour = launch { playerFour.run(playerProgressDecrement[1]) }
+
+                val jobs = listOf(jobOne, jobTwo, jobThree, jobFour)
+                jobs.forEachIndexed { index, job ->
+                    job.invokeOnCompletion {throwable ->
+                        if (throwable == null) {
+                            val currentWinner = when (index) {
+                                0 -> if (playerOne.hasFinished()) playerOne.name else null
+                                1 -> if (playerTwo.hasFinished()) playerTwo.name else null
+                                2 -> if (playerThree.hasFinished()) playerThree.name else null
+                                3 -> if (playerFour.hasFinished()) playerFour.name else null
+                                else -> null
+                            }
+                            if (currentWinner != null) {
+                                // Cancel all other jobs as we have a winner
+                                jobs.forEach { it.cancel() }
+                                raceInProgress = false
+                                raceEnded = true
+
+                                // Showing the toast on UI thread
+                                launch(Dispatchers.Main) {
+                                    Toast.makeText(context, currentWinner, Toast.LENGTH_LONG).show()
+                                }
+
+                            }
+                        }
+
+                    }
+                }
             }
-            raceInProgress = false
         }
 
     }
@@ -119,6 +151,8 @@ fun RaceTrackerApp() {
         playerFour = playerFour,
         isRunning = raceInProgress,
         onRunStateChange = { raceInProgress = it },
+        isEnded = raceEnded,
+        onEndStateChange = { raceEnded = it },
         modifier = Modifier
             .statusBarsPadding()
             .fillMaxSize()
@@ -136,6 +170,8 @@ private fun RaceTrackerScreen(
     playerFour: RaceParticipant,
     isRunning: Boolean,
     onRunStateChange: (Boolean) -> Unit,
+    isEnded: Boolean,
+    onEndStateChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -205,6 +241,7 @@ private fun RaceTrackerScreen(
             Spacer(modifier = Modifier.size(dimensionResource(R.dimen.padding_large)))
             RaceControls(
                 isRunning = isRunning,
+                isEnded = isEnded,
                 onRunStateChange = onRunStateChange,
                 onReset = {
                     playerOne.reset()
@@ -212,6 +249,7 @@ private fun RaceTrackerScreen(
                     playerThree.reset()
                     playerFour.reset()
                     onRunStateChange(false)
+                    onEndStateChange(false)
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -269,6 +307,7 @@ private fun RaceControls(
     onReset: () -> Unit,
     modifier: Modifier = Modifier,
     isRunning: Boolean = true,
+    isEnded: Boolean = false
 ) {
     Column(
         modifier = modifier.padding(top = dimensionResource(R.dimen.padding_medium)),
@@ -276,6 +315,7 @@ private fun RaceControls(
     ) {
         Button(
             onClick = { onRunStateChange(!isRunning) },
+            enabled = !isEnded,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(if (isRunning) stringResource(R.string.pause) else stringResource(R.string.start))

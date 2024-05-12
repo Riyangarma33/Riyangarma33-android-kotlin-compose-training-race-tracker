@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -75,6 +76,12 @@ fun Congratulation(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(R.string.back_to_main))
+                }
+                OutlinedButton(
+                    onClick = { /*TODO*/ },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.to_stats))
                 }
             }
         }
